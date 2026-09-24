@@ -31,3 +31,13 @@ docker compose up --build
 1. taster 登录后看到春茶-A 通过、夏茶-C 不通过。
 2. 再提交一组高分，新行出现在表头，页面不整页刷新。
 3. observer 登录后没有提交表单。
+
+## 自动化核对
+
+```bash
+cd backend
+pip install -r requirements-dev.txt
+pytest -q
+```
+
+对边界七分、明显高于七、明显低于七三组输入，分别核对判定函数、库内结论、总表色块、详情说明四处逐字一致；并核对只读账号无法提交（页面无表单、直接 POST 返回 403 且不落库）。
