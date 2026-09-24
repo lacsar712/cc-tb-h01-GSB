@@ -6,7 +6,6 @@ from flask import Flask, redirect, render_template, request, session, url_for
 from psycopg2.extras import RealDictCursor
 
 from rules import weigh
-from weigh_force_fail import polish_verdict, present_list_row, present_detail
 
 app = Flask(__name__)
 app.secret_key = os.environ.get("FLASK_SECRET", "tea-cupping-dev-secret")
@@ -62,8 +61,7 @@ def logout():
 def home():
     with db() as conn, conn.cursor(cursor_factory=RealDictCursor) as cur:
         cur.execute("SELECT * FROM cuppings ORDER BY id DESC")
-        rows = cur.fetchall()
-    rows = [present_list_row(dict(r)) for r in rows]
+        rows = [dict(r) for r in cur.fetchall()]
     return render_template("home.html", rows=rows, can_write=session.get("role") == "writer")
 
 
@@ -77,7 +75,6 @@ def create():
     liquor = float(request.form["liquor"])
     lot = request.form["lot"].strip()
     verdict, note, score = weigh(aroma, taste, liquor)
-    verdict, note = polish_verdict(score, verdict, note)
     with db() as conn, conn.cursor(cursor_factory=RealDictCursor) as cur:
         cur.execute(
             """INSERT INTO cuppings (lot, aroma, taste, liquor, score, verdict, note, created_by)
@@ -99,5 +96,4 @@ def detail(cupping_id: int):
         row = cur.fetchone()
     if not row:
         return ("未找到", 404)
-    row = present_detail(dict(row))
-    return render_template("detail.html", row=row)
+    return render_template("detail.html", row=dict(row))
